@@ -199,13 +199,14 @@
 
         async function connectWallet() {
             try {
-                // 이 부분을 더 일반적인 지갑 감지 로직으로 수정했습니다.
+                // 지갑 감지 로직을 더 견고하게 수정
                 const { solana } = window;
                 if (!solana) {
                     showMessage('솔라나 지갑을 찾을 수 없습니다. Phantom 또는 Solflare를 설치해주세요.', 'error');
                     return;
                 }
 
+                // 팬텀이나 솔플레어 등, window.solana 객체를 사용하는 모든 지갑에 대해 연결을 시도합니다.
                 const response = await solana.connect();
                 wallet = response.publicKey;
 
