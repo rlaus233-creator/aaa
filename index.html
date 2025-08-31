@@ -197,10 +197,318 @@
         let payer;
         let mint;
 
+        // 모든 스크립트가 로드된 후에 실행되도록 window.onload를 사용합니다.
+        window.onload = function() {
+            connectWalletBtn.addEventListener('click', connectWallet);
+
+            document.getElementById('create-token-btn').addEventListener('click', async () => {
+                if (!wallet) {
+                    showMessage('먼저 지갑을 연결하세요.', 'error');
+                    return;
+                }
+
+                const tokenName = document.getElementById('token-name').value;
+                const tokenSymbol = document.getElementById('token-symbol').value;
+                const tokenSupply = parseInt(document.getElementById('token-supply').value);
+                const tokenLogoUrl = document.getElementById('token-logo-url').value;
+                const tokenDescription = document.getElementById('token-description').value;
+                const tokenWebsiteUrl = document.getElementById('token-website-url').value;
+                const twitterUrl = document.getElementById('twitter-url').value;
+                const discordUrl = document.getElementById('discord-url').value;
+
+                if (!tokenName || !tokenSymbol || isNaN(tokenSupply) || tokenSupply <= 0) {
+                    showMessage('필수 정보를 올바르게 입력해주세요.', 'error');
+                    return;
+                }
+
+                try {
+                    showMessage('토큰을 생성하는 중...', 'info');
+
+                    // Metaplex 객체 생성
+                    const metaplex = Metaplex.make(connection).use(Metaplex.walletAdapterIdentity(window.solana));
+
+                    // 메타데이터 URI는 Arweave와 같은 분산형 스토리지에 업로드되어야 하지만,
+                    // 이 예제에서는 단순화를 위해 임시 URL을 사용합니다.
+                    const metadataUri = 'https://arweave.net/REPLACE_WITH_METADATA_JSON_URI';
+
+                    // Metaplex를 사용하여 토큰 발행 및 메타데이터 생성
+                    const { mintAddress } = await metaplex.tokens().createFungibleTokenWithMetadata({
+                        decimals: 9,
+                        name: tokenName,
+                        symbol: tokenSymbol,
+                        uri: metadataUri,
+                        sellerFeeBasisPoints: 0,
+                        creators: [{ address: wallet, share: 100 }],
+                        supply: metaplex.tokens().token(tokenSupply * (10 ** 9)),
+                        owner: wallet
+                    }).run();
+
+                    mint = mintAddress;
+
+                    showMessage(`'${tokenName}' 토큰이 성공적으로 생성되었습니다! 민트 주소: ${mint.toString()}`, 'success');
+                    console.log('생성된 토큰 민트:', mint.toString());
+
+                    // Display token info
+                    const tokenInfoSection = document.getElementById('token-info-section');
+                    document.getElementById('display-token-name').textContent = tokenName;
+                    document.getElementById('display-token-symbol').textContent = tokenSymbol;
+                    document.getElementById('display-token-supply').textContent = tokenSupply.toLocaleString();
+                    document.getElementById('display-token-description').textContent = tokenDescription;
+
+                    const websiteLink = document.getElementById('website-link');
+                    if (tokenWebsiteUrl) {
+                        websiteLink.href = tokenWebsiteUrl;
+                        websiteLink.textContent = tokenWebsiteUrl;
+                        websiteLink.classList.remove('hidden');
+                    } else {
+                        websiteLink.classList.add('hidden');
+                    }
+
+                    const tokenLogo = document.getElementById('token-logo');
+                    if (tokenLogoUrl) {
+                        tokenLogo.src = tokenLogoUrl;
+                        tokenLogo.classList.remove('hidden');
+                    } else {
+                        tokenLogo.classList.add('hidden');
+                    }
+
+                    const twitterLink = document.getElementById('twitter-link');
+                    if (twitterUrl) {
+                        twitterLink.href = twitterUrl;
+                        twitterLink.classList.remove('hidden');
+                    } else {
+                        twitterLink.classList.add('hidden');
+                    }
+
+                    const discordLink = document.getElementById('discord-link');
+                    if (discordUrl) {
+                        discordLink.href = discordUrl;
+                        discordLink.classList.remove('hidden');
+                    } else {
+                        discordLink.classList.add('hidden');
+                    }
+
+                    tokenInfoSection.classList.remove('hidden');
+
+                } catch (error) {
+                    showMessage(`토큰 생성 실패: ${error.message}`, 'error');
+                    console.error('토큰 생성 에러:', error);
+                }
+            });
+
+            // Single transfer
+            document.getElementById('transfer-token-btn').addEventListener('click', async () => {
+                if (!wallet || !mint) {
+                    showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
+                    return;
+                }
+
+                const recipientAddress = document.getElementById('recipient-address').value;
+                const transferAmount = parseInt(document.getElementById('transfer-amount').value);
+
+                if (!recipientAddress || isNaN(transferAmount) || transferAmount <= 0) {
+                    showMessage('받는 사람 주소와 수량을 올바르게 입력하세요.', 'error');
+                    return;
+                }
+
+                try {
+                    showMessage('토큰을 전송하는 중...', 'info');
+
+                    const sourceTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                        connection,
+                        payer,
+                        mint,
+                        wallet
+                    );
+
+                    const destinationPublicKey = new solanaWeb3.PublicKey(recipientAddress);
+                    const destinationTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                        connection,
+                        payer,
+                        mint,
+                        destinationPublicKey
+                    );
+
+                    const signature = await splToken.transfer(
+                        connection,
+                        payer,
+                        sourceTokenAccount.address,
+                        destinationTokenAccount.address,
+                        wallet,
+                        transferAmount * (10 ** 9)
+                    );
+
+                    showMessage(`토큰이 성공적으로 전송되었습니다! 트랜잭션 서명: ${signature}`, 'success');
+                    console.log('트랜잭션 서명:', signature);
+
+                } catch (error) {
+                    showMessage(`토큰 전송 실패: ${error.message}`, 'error');
+                    console.error('토큰 전송 에러:', error);
+                }
+            });
+
+            // Multi-transfer
+            document.getElementById('transfer-multiple-token-btn').addEventListener('click', async () => {
+                if (!wallet || !mint) {
+                    showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
+                    return;
+                }
+
+                const multiTransferData = document.getElementById('multi-transfer-data').value;
+                if (!multiTransferData) {
+                    showMessage('전송 정보를 입력하세요.', 'error');
+                    return;
+                }
+
+                try {
+                    showMessage('다중 이체를 처리하는 중...', 'info');
+                    
+                    const sourceTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                        connection,
+                        payer,
+                        mint,
+                        wallet
+                    );
+
+                    const transaction = new solanaWeb3.Transaction();
+                    const transfers = multiTransferData.split(';').map(t => t.trim()).filter(t => t.length > 0);
+                    
+                    for (const t of transfers) {
+                        const [recipientAddress, transferAmount] = t.split(',');
+                        const amount = parseInt(transferAmount);
+
+                        if (!recipientAddress || isNaN(amount) || amount <= 0) {
+                            showMessage('입력 형식이 올바르지 않습니다.', 'error');
+                            return;
+                        }
+
+                        const destinationPublicKey = new solanaWeb3.PublicKey(recipientAddress);
+                        const destinationTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                            connection,
+                            payer,
+                            mint,
+                            destinationPublicKey
+                        );
+
+                        const instruction = splToken.createTransferInstruction(
+                            sourceTokenAccount.address,
+                            destinationTokenAccount.address,
+                            wallet,
+                            amount * (10 ** 9)
+                        );
+                        transaction.add(instruction);
+                    }
+
+                    // Phantom 지갑을 통해 트랜잭션 서명 및 전송
+                    const signature = await solanaWeb3.sendAndConfirmTransaction(
+                        connection,
+                        transaction,
+                        [payer]
+                    );
+
+                    showMessage(`다중 이체가 성공적으로 완료되었습니다! 트랜잭션 서명: ${signature}`, 'success');
+                    console.log('트랜잭션 서명:', signature);
+
+                } catch (error) {
+                    showMessage(`다중 이체 실패: ${error.message}`, 'error');
+                    console.error('다중 이체 에러:', error);
+                }
+            });
+
+            // Token burn
+            document.getElementById('burn-token-btn').addEventListener('click', async () => {
+                if (!wallet || !mint) {
+                    showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
+                    return;
+                }
+                const burnAmount = parseInt(document.getElementById('burn-amount').value);
+                if (isNaN(burnAmount) || burnAmount <= 0) {
+                    showMessage('소각할 수량을 올바르게 입력하세요.', 'error');
+                    return;
+                }
+                try {
+                    showMessage('토큰을 소각하는 중...', 'info');
+                    const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                        connection,
+                        payer,
+                        mint,
+                        wallet
+                    );
+                    const signature = await splToken.burn(
+                        connection,
+                        payer,
+                        tokenAccount.address,
+                        mint,
+                        wallet,
+                        burnAmount * (10 ** 9)
+                    );
+                    showMessage(`토큰 ${burnAmount}개가 성공적으로 소각되었습니다! 트랜잭션 서명: ${signature}`, 'success');
+                } catch (error) {
+                    showMessage(`토큰 소각 실패: ${error.message}`, 'error');
+                    console.error('토큰 소각 에러:', error);
+                }
+            });
+
+            // Token freeze
+            document.getElementById('freeze-token-btn').addEventListener('click', async () => {
+                if (!wallet || !mint) {
+                    showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
+                    return;
+                }
+                const freezeAddress = document.getElementById('freeze-address').value;
+                if (!freezeAddress) {
+                    showMessage('동결할 지갑 주소를 입력하세요.', 'error');
+                    return;
+                }
+                try {
+                    showMessage('토큰을 동결하는 중...', 'info');
+                    const freezePublicKey = new solanaWeb3.PublicKey(freezeAddress);
+                    const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                        connection,
+                        payer,
+                        mint,
+                        freezePublicKey
+                    );
+                    const signature = await splToken.freezeAccount(
+                        connection,
+                        payer,
+                        tokenAccount.address,
+                        mint,
+                        wallet
+                    );
+                    showMessage(`'${freezeAddress}' 계정의 토큰이 성공적으로 동결되었습니다! 트랜잭션 서명: ${signature}`, 'success');
+                } catch (error) {
+                    showMessage(`토큰 동결 실패: ${error.message}`, 'error');
+                    console.error('토큰 동결 에러:', error);
+                }
+            });
+
+            // Check balance
+            document.getElementById('check-balance-btn').addEventListener('click', async () => {
+                if (!wallet || !mint) {
+                    showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
+                    return;
+                }
+                try {
+                    showMessage('잔액을 조회하는 중...', 'info');
+                    const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
+                        connection,
+                        payer,
+                        mint,
+                        wallet
+                    );
+                    const balance = (await connection.getTokenAccountBalance(tokenAccount.address)).value.uiAmount;
+                    document.getElementById('my-balance').textContent = `${balance.toLocaleString()} ${document.getElementById('token-symbol').value}`;
+                    showMessage('잔액 조회가 완료되었습니다!', 'success');
+                } catch (error) {
+                    showMessage(`잔액 조회 실패: ${error.message}`, 'error');
+                    console.error('잔액 조회 에러:', error);
+                }
+            });
+        };
+        
         async function connectWallet() {
             try {
-                // 이 부분을 더 견고한 지갑 감지 로직으로 수정했습니다.
-                // 모든 솔라나 지갑 제공자를 순회하여 유효한 지갑을 찾습니다.
                 const provider = window.solana;
                 if (!provider) {
                     showMessage('솔라나 지갑을 찾을 수 없습니다. Phantom 또는 Solflare를 설치해주세요.', 'error');
@@ -224,312 +532,6 @@
                 console.error('지갑 연결 에러:', error);
             }
         }
-        connectWalletBtn.addEventListener('click', connectWallet);
-
-        document.getElementById('create-token-btn').addEventListener('click', async () => {
-            if (!wallet) {
-                showMessage('먼저 지갑을 연결하세요.', 'error');
-                return;
-            }
-
-            const tokenName = document.getElementById('token-name').value;
-            const tokenSymbol = document.getElementById('token-symbol').value;
-            const tokenSupply = parseInt(document.getElementById('token-supply').value);
-            const tokenLogoUrl = document.getElementById('token-logo-url').value;
-            const tokenDescription = document.getElementById('token-description').value;
-            const tokenWebsiteUrl = document.getElementById('token-website-url').value;
-            const twitterUrl = document.getElementById('twitter-url').value;
-            const discordUrl = document.getElementById('discord-url').value;
-
-            if (!tokenName || !tokenSymbol || isNaN(tokenSupply) || tokenSupply <= 0) {
-                showMessage('필수 정보를 올바르게 입력해주세요.', 'error');
-                return;
-            }
-
-            try {
-                showMessage('토큰을 생성하는 중...', 'info');
-
-                // Metaplex 객체 생성
-                const metaplex = Metaplex.make(connection).use(Metaplex.walletAdapterIdentity(window.solana));
-
-                // 메타데이터 URI는 Arweave와 같은 분산형 스토리지에 업로드되어야 하지만,
-                // 이 예제에서는 단순화를 위해 임시 URL을 사용합니다.
-                const metadataUri = 'https://arweave.net/REPLACE_WITH_METADATA_JSON_URI';
-
-                // Metaplex를 사용하여 토큰 발행 및 메타데이터 생성
-                const { mintAddress } = await metaplex.tokens().createFungibleTokenWithMetadata({
-                    decimals: 9,
-                    name: tokenName,
-                    symbol: tokenSymbol,
-                    uri: metadataUri,
-                    sellerFeeBasisPoints: 0,
-                    creators: [{ address: wallet, share: 100 }],
-                    supply: metaplex.tokens().token(tokenSupply * (10 ** 9)),
-                    owner: wallet
-                }).run();
-
-                mint = mintAddress;
-
-                showMessage(`'${tokenName}' 토큰이 성공적으로 생성되었습니다! 민트 주소: ${mint.toString()}`, 'success');
-                console.log('생성된 토큰 민트:', mint.toString());
-
-                // Display token info
-                const tokenInfoSection = document.getElementById('token-info-section');
-                document.getElementById('display-token-name').textContent = tokenName;
-                document.getElementById('display-token-symbol').textContent = tokenSymbol;
-                document.getElementById('display-token-supply').textContent = tokenSupply.toLocaleString();
-                document.getElementById('display-token-description').textContent = tokenDescription;
-
-                const websiteLink = document.getElementById('website-link');
-                if (tokenWebsiteUrl) {
-                    websiteLink.href = tokenWebsiteUrl;
-                    websiteLink.textContent = tokenWebsiteUrl;
-                    websiteLink.classList.remove('hidden');
-                } else {
-                    websiteLink.classList.add('hidden');
-                }
-
-                const tokenLogo = document.getElementById('token-logo');
-                if (tokenLogoUrl) {
-                    tokenLogo.src = tokenLogoUrl;
-                    tokenLogo.classList.remove('hidden');
-                } else {
-                    tokenLogo.classList.add('hidden');
-                }
-
-                const twitterLink = document.getElementById('twitter-link');
-                if (twitterUrl) {
-                    twitterLink.href = twitterUrl;
-                    twitterLink.classList.remove('hidden');
-                } else {
-                    twitterLink.classList.add('hidden');
-                }
-
-                const discordLink = document.getElementById('discord-link');
-                if (discordUrl) {
-                    discordLink.href = discordUrl;
-                    discordLink.classList.remove('hidden');
-                } else {
-                    discordLink.classList.add('hidden');
-                }
-
-                tokenInfoSection.classList.remove('hidden');
-
-            } catch (error) {
-                showMessage(`토큰 생성 실패: ${error.message}`, 'error');
-                console.error('토큰 생성 에러:', error);
-            }
-        });
-
-        // Single transfer
-        document.getElementById('transfer-token-btn').addEventListener('click', async () => {
-            if (!wallet || !mint) {
-                showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
-                return;
-            }
-
-            const recipientAddress = document.getElementById('recipient-address').value;
-            const transferAmount = parseInt(document.getElementById('transfer-amount').value);
-
-            if (!recipientAddress || isNaN(transferAmount) || transferAmount <= 0) {
-                showMessage('받는 사람 주소와 수량을 올바르게 입력하세요.', 'error');
-                return;
-            }
-
-            try {
-                showMessage('토큰을 전송하는 중...', 'info');
-
-                const sourceTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                    connection,
-                    payer,
-                    mint,
-                    wallet
-                );
-
-                const destinationPublicKey = new solanaWeb3.PublicKey(recipientAddress);
-                const destinationTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                    connection,
-                    payer,
-                    mint,
-                    destinationPublicKey
-                );
-
-                const signature = await splToken.transfer(
-                    connection,
-                    payer,
-                    sourceTokenAccount.address,
-                    destinationTokenAccount.address,
-                    wallet,
-                    transferAmount * (10 ** 9)
-                );
-
-                showMessage(`토큰이 성공적으로 전송되었습니다! 트랜잭션 서명: ${signature}`, 'success');
-                console.log('트랜잭션 서명:', signature);
-
-            } catch (error) {
-                showMessage(`토큰 전송 실패: ${error.message}`, 'error');
-                console.error('토큰 전송 에러:', error);
-            }
-        });
-
-        // Multi-transfer
-        document.getElementById('transfer-multiple-token-btn').addEventListener('click', async () => {
-            if (!wallet || !mint) {
-                showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
-                return;
-            }
-
-            const multiTransferData = document.getElementById('multi-transfer-data').value;
-            if (!multiTransferData) {
-                showMessage('전송 정보를 입력하세요.', 'error');
-                return;
-            }
-
-            try {
-                showMessage('다중 이체를 처리하는 중...', 'info');
-                
-                const sourceTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                    connection,
-                    payer,
-                    mint,
-                    wallet
-                );
-
-                const transaction = new solanaWeb3.Transaction();
-                const transfers = multiTransferData.split(';').map(t => t.trim()).filter(t => t.length > 0);
-                
-                for (const t of transfers) {
-                    const [recipientAddress, transferAmount] = t.split(',');
-                    const amount = parseInt(transferAmount);
-
-                    if (!recipientAddress || isNaN(amount) || amount <= 0) {
-                        showMessage('입력 형식이 올바르지 않습니다.', 'error');
-                        return;
-                    }
-
-                    const destinationPublicKey = new solanaWeb3.PublicKey(recipientAddress);
-                    const destinationTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                        connection,
-                        payer,
-                        mint,
-                        destinationPublicKey
-                    );
-
-                    const instruction = splToken.createTransferInstruction(
-                        sourceTokenAccount.address,
-                        destinationTokenAccount.address,
-                        wallet,
-                        amount * (10 ** 9)
-                    );
-                    transaction.add(instruction);
-                }
-
-                // Phantom 지갑을 통해 트랜잭션 서명 및 전송
-                const signature = await solanaWeb3.sendAndConfirmTransaction(
-                    connection,
-                    transaction,
-                    [payer]
-                );
-
-                showMessage(`다중 이체가 성공적으로 완료되었습니다! 트랜잭션 서명: ${signature}`, 'success');
-                console.log('트랜잭션 서명:', signature);
-
-            } catch (error) {
-                showMessage(`다중 이체 실패: ${error.message}`, 'error');
-                console.error('다중 이체 에러:', error);
-            }
-        });
-
-        // Token burn
-        document.getElementById('burn-token-btn').addEventListener('click', async () => {
-            if (!wallet || !mint) {
-                showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
-                return;
-            }
-            const burnAmount = parseInt(document.getElementById('burn-amount').value);
-            if (isNaN(burnAmount) || burnAmount <= 0) {
-                showMessage('소각할 수량을 올바르게 입력하세요.', 'error');
-                return;
-            }
-            try {
-                showMessage('토큰을 소각하는 중...', 'info');
-                const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                    connection,
-                    payer,
-                    mint,
-                    wallet
-                );
-                const signature = await splToken.burn(
-                    connection,
-                    payer,
-                    tokenAccount.address,
-                    mint,
-                    wallet,
-                    burnAmount * (10 ** 9)
-                );
-                showMessage(`토큰 ${burnAmount}개가 성공적으로 소각되었습니다! 트랜잭션 서명: ${signature}`, 'success');
-            } catch (error) {
-                showMessage(`토큰 소각 실패: ${error.message}`, 'error');
-                console.error('토큰 소각 에러:', error);
-            }
-        });
-
-        // Token freeze
-        document.getElementById('freeze-token-btn').addEventListener('click', async () => {
-            if (!wallet || !mint) {
-                showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
-                return;
-            }
-            const freezeAddress = document.getElementById('freeze-address').value;
-            if (!freezeAddress) {
-                showMessage('동결할 지갑 주소를 입력하세요.', 'error');
-                return;
-            }
-            try {
-                showMessage('토큰을 동결하는 중...', 'info');
-                const freezePublicKey = new solanaWeb3.PublicKey(freezeAddress);
-                const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                    connection,
-                    payer,
-                    mint,
-                    freezePublicKey
-                );
-                const signature = await splToken.freezeAccount(
-                    connection,
-                    payer,
-                    tokenAccount.address,
-                    mint,
-                    wallet
-                );
-                showMessage(`'${freezeAddress}' 계정의 토큰이 성공적으로 동결되었습니다! 트랜잭션 서명: ${signature}`, 'success');
-            } catch (error) {
-                showMessage(`토큰 동결 실패: ${error.message}`, 'error');
-                console.error('토큰 동결 에러:', error);
-            }
-        });
-
-        // Check balance
-        document.getElementById('check-balance-btn').addEventListener('click', async () => {
-            if (!wallet || !mint) {
-                showMessage('먼저 지갑을 연결하고 토큰을 생성하세요.', 'error');
-                return;
-            }
-            try {
-                showMessage('잔액을 조회하는 중...', 'info');
-                const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(
-                    connection,
-                    payer,
-                    mint,
-                    wallet
-                );
-                const balance = (await connection.getTokenAccountBalance(tokenAccount.address)).value.uiAmount;
-                document.getElementById('my-balance').textContent = `${balance.toLocaleString()} ${document.getElementById('token-symbol').value}`;
-                showMessage('잔액 조회가 완료되었습니다!', 'success');
-            } catch (error) {
-                showMessage(`잔액 조회 실패: ${error.message}`, 'error');
-                console.error('잔액 조회 에러:', error);
-            }
-        });
     </script>
 </body>
 </html>
