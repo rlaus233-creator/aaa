@@ -195,7 +195,10 @@ index fb21a04ec198e55b74e9b2629d23438feb896773..a2788234d9bdcd6eebcf3d12f3abfed8
                  );
  
                  // 3. 메타데이터 생성 (Metaplex)
-                 const metaplex = new Metaplex.Metaplex(connection);
+                 const metaplex = Metaplex.make(connection)
+                    .use(Metaplex.walletAdapterIdentity(window.solana));
+
+                const metadataUri = 'https://arweave.net/REPLACE_WITH_METADATA_JSON'; // JSON metadata (name, symbol, description, image)
  
                  await metaplex.tokens().createToken({
                      mint: mint,
@@ -203,7 +206,7 @@ index fb21a04ec198e55b74e9b2629d23438feb896773..a2788234d9bdcd6eebcf3d12f3abfed8
                      name: tokenName,
                      symbol: tokenSymbol,
                      decimals: 9,
-                     uri: tokenLogoUrl, // 임시로 로고 URL 사용, 실제로는 Arweave 등에 업로드된 URI 사용
+                     uri: metadataUri, // Arweave or IPFS metadata JSON
                      sellerFeeBasisPoints: 0,
                      creators: [{ address: wallet, share: 100 }],
                  }).run();
