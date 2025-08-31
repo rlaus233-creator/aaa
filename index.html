@@ -1,255 +1,272 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>솔라나 유틸리티 코인 DApp</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-    </style>
-</head>
-<body class="flex items-center justify-center min-h-screen bg-gray-100">
-
-    <div id="app" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-xl mx-4">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">솔라나 유틸리티 코인 DApp</h1>
-        <p class="text-center text-gray-500 mb-8">
-            솔라나 블록체인 위에서 자신만의 유틸리티 코인을 만들고 관리하세요.
-        </p>
-
-        <!-- Wallet Status -->
-        <div id="wallet-status" class="mb-6 text-center">
-            <button id="connect-wallet-btn" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
-                솔라나 지갑 연결하기
-            </button>
-            <p id="wallet-address" class="hidden mt-4 text-gray-700 break-all rounded-lg bg-gray-100 p-2"></p>
-        </div>
-        <div id="wallet-status" class="mb-6 text-center">
-            <select id="network-select" class="w-full mb-4 rounded-xl border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
-                <option value="devnet">Devnet</option>
-                <option value="mainnet-beta">Mainnet</option>
-            </select>
-            <button id="connect-wallet-btn" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
-                솔라나 지갑 연결하기
-            </button>
-            <p id="wallet-address" class="hidden mt-4 text-gray-700 break-all rounded-lg bg-gray-100 p-2"></p>
-        </div>
-
-        <!-- Token Creation Form -->
-        <div id="create-token-section" class="bg-gray-50 p-6 rounded-xl mb-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">토큰 생성</h2>
-            <div class="space-y-4">
-                <div>
-                    <label for="token-name" class="block text-sm font-medium text-gray-700">토큰 이름</label>
-                    <input type="text" id="token-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: My Utility Coin">
-                </div>
-                <div>
-                    <label for="token-symbol" class="block text-sm font-medium text-gray-700">토큰 심볼</label>
-                    <input type="text" id="token-symbol" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: MYC">
-                </div>
-                <div>
-                    <label for="token-supply" class="block text-sm font-medium text-gray-700">총 발행량</label>
-                    <input type="number" id="token-supply" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: 1000000000">
-                </div>
-                <div>
-                    <label for="token-description" class="block text-sm font-medium text-gray-700">토큰 설명</label>
-                    <textarea id="token-description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="토큰에 대한 간단한 설명"></textarea>
-                </div>
-                <div>
-                    <label for="token-website-url" class="block text-sm font-medium text-gray-700">웹사이트 URL</label>
-                    <input type="url" id="token-website-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://mycoin.io">
-                </div>
-                <div>
-                    <label for="token-logo-url" class="block text-sm font-medium text-gray-700">토큰 로고 URL</label>
-                    <input type="url" id="token-logo-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://example.com/logo.png">
-                </div>
-                <div>
-                    <label for="twitter-url" class="block text-sm font-medium text-gray-700">트위터 URL</label>
-                    <input type="url" id="twitter-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://twitter.com/mycoin">
-                </div>
-                <div>
-                    <label for="discord-url" class="block text-sm font-medium text-gray-700">디스코드 URL</label>
-                    <input type="url" id="discord-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://discord.com/invite/mycoin">
-                </div>
-                <button id="create-token-btn" class="w-full bg-green-500 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-600 transition duration-300">
-                    토큰 생성하기
-                </button>
-            </div>
-        </div>
-
-        <!-- Token Info Display Section -->
-        <div id="token-info-section" class="bg-gray-50 p-6 rounded-xl hidden mb-6 text-center">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">내 토큰 정보</h2>
-            <div class="flex flex-col items-center justify-center space-y-4">
-                <img id="token-logo" src="" alt="Token Logo" class="h-24 w-24 rounded-full border-2 border-gray-200 object-cover">
-                <p class="text-2xl font-bold text-gray-800"><span id="display-token-name"></span> (<span id="display-token-symbol"></span>)</p>
-                <p class="text-gray-600">총 발행량: <span id="display-token-supply"></span></p>
-                <div class="flex space-x-4">
-                <p class="text-gray-600">총 발행량: <span id="display-token-supply"></span></p>
-                <p id="display-token-description" class="text-gray-600"></p>
-                <a id="website-link" href="#" target="_blank" class="text-indigo-600 hover:underline hidden"></a>
-                <div class="flex space-x-4">
-                    <a id="twitter-link" href="#" target="_blank" class="hidden">
-                        <svg class="w-8 h-8 text-gray-600 hover:text-blue-500 transition-colors duration-200" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M18.244 2.25h3.308l-7.227 8.261 8.502 11.239h-6.69l-5.982-7.925-4.148 5.494h-3.308l7.536-8.583-8.62-11.399h6.655l4.332 5.768zM17.43 19.33L5.15 4.126h2.822l12.02 15.204h-2.564z" />
-                        </svg>
-                    </a>
-                    <a id="discord-link" href="#" target="_blank" class="hidden">
-                        <svg class="w-8 h-8 text-gray-600 hover:text-indigo-500 transition-colors duration-200" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M15.42 5.568c-.78-1.1-1.78-2.2-2.92-3.3-1.62-.62-3.32-.96-5.08-.96-1.76 0-3.46.34-5.08.96-1.14 1.1-2.14 2.2-2.92 3.3-1.02 1.4-1.74 3.1-2.02 4.9-.28 1.8-.1 3.7.5 5.5.6 1.8 1.6 3.4 2.9 4.8.4.4.9.7 1.4.9.5.2.9.3 1.4.3.5 0 1-.1 1.5-.3.5-.2.9-.5 1.4-.9.4-.4.8-.8 1.2-1.3.4-.5.8-1 1.1-1.6.3-.6.5-1.2.6-1.9.1-.7.1-1.4 0-2.1-.1-1.4-.7-2.7-1.7-3.9.7-.7 1.6-1.3 2.5-1.8.9-.5 1.8-.9 2.8-1.2.9-.3 1.9-.5 2.8-.5 1.8 0 3.5.5 5.1 1.4 1.6.9 3 2.1 4.2 3.5 1.2 1.4 2.2 2.9 2.9 4.6 1.1 2.3 1.5 4.8.9 7.3-.6 2.5-2 4.7-4.2 6.4-1.2 1-2.6 1.8-4.1 2.4-1.5.6-3.1 1-4.7 1-1.6 0-3.2-.4-4.7-1-1.5-.6-2.9-1.4-4.1-2.4-2.2-1.7-3.6-3.9-4.2-6.4-.6-2.5-.2-5 .9-7.3 1.1-2.3 2.5-4.2 4.2-5.5 1.7-1.3 3.5-2.2 5.4-2.7 1.9-.5 3.8-.6 5.7-.3 1.9.3 3.7.9 5.4 1.8 1.7.9 3.2 2 4.6 3.3 1.4 1.3 2.6 2.8 3.5 4.4 1.8 3.2 2.8 6.7 2.8 10.3 0 1.2-.1 2.4-.4 3.6-2.3-1-4.9-1.5-7.6-1.5-2.7 0-5.3.5-7.6 1.5-.3-1.2-.4-2.4-.4-3.6 0-3.6 1-7.1 2.8-10.3 1.4-2.4 3.2-4.4 5.4-5.9 2.2-1.5 4.6-2.5 7-3zm-10.12 11.23c-1.28-.1-2.45.6-3.14 1.7-.69 1.1-.9 2.5-.64 3.8-.65.2-1.24.5-1.78.9-.54.4-.97.9-1.3 1.5-.33.6-.5 1.3-.5 2 0 .7.1 1.4.3 2.1.2.7.5 1.4.9 2.1.4.7.9 1.4 1.6 2.1.7.7 1.5 1.4 2.4 1.9 1.6.9 3.3 1.4 5.1 1.4 1.8 0 3.5-.5 5.1-1.4 1.6-.9 2.9-2.1 3.9-3.5 1-1.4 1.7-3 2-4.7.3-1.7.1-3.5-.5-5.2-.6-1.7-1.6-3.2-3-4.5-1.4-1.3-2.9-2.2-4.7-2.8-1.8-.6-3.7-.7-5.5-.3-1.8.4-3.5 1.3-5.2 2.5-1.7 1.2-3.1 2.7-4.1 4.5-.4-.4-.8-.8-1.2-1.3-.4-.5-.8-1-1.1-1.6-.3-.6-.5-1.2-.6-1.9-.1-.7-.1-1.4 0-2.1.1-1.4.7-2.7 1.7-3.9z" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Token Transfer Form -->
-        <div id="transfer-token-section" class="bg-gray-50 p-6 rounded-xl">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">단일 토큰 전송</h2>
-            <div class="space-y-4">
-                <div>
-                    <label for="recipient-address" class="block text-sm font-medium text-gray-700">받는 사람 주소</label>
-                    <input type="text" id="recipient-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="받는 사람의 솔라나 주소">
-                </div>
-                <div>
-                    <label for="transfer-amount" class="block text-sm font-medium text-gray-700">전송 수량</label>
-                    <input type="number" id="transfer-amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="전송할 토큰 수량">
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/index.html b/index.html
+index fb21a04ec198e55b74e9b2629d23438feb896773..a2788234d9bdcd6eebcf3d12f3abfed8fb1481e7 100644
+--- a/index.html
++++ b/index.html
+@@ -1,106 +1,112 @@
+ <!DOCTYPE html>
+ <html lang="ko">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>솔라나 유틸리티 코인 DApp</title>
+     <script src="https://cdn.tailwindcss.com"></script>
+     <style>
+         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+         body {
+             font-family: 'Inter', sans-serif;
+             background-color: #f3f4f6;
+         }
+     </style>
+ </head>
+ <body class="flex items-center justify-center min-h-screen bg-gray-100">
+ 
+     <div id="app" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-xl mx-4">
+         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">솔라나 유틸리티 코인 DApp</h1>
+         <p class="text-center text-gray-500 mb-8">
+             솔라나 블록체인 위에서 자신만의 유틸리티 코인을 만들고 관리하세요.
+         </p>
+ 
+         <!-- Wallet Status -->
+-        <div id="wallet-status" class="mb-6 text-center">
+-            <button id="connect-wallet-btn" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
+-                솔라나 지갑 연결하기
+-            </button>
+-            <p id="wallet-address" class="hidden mt-4 text-gray-700 break-all rounded-lg bg-gray-100 p-2"></p>
+-        </div>
++        <div id="wallet-status" class="mb-6 text-center">
++            <select id="network-select" class="w-full mb-4 rounded-xl border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
++                <option value="devnet">Devnet</option>
++                <option value="mainnet-beta">Mainnet</option>
++            </select>
++            <button id="connect-wallet-btn" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
++                솔라나 지갑 연결하기
++            </button>
++            <p id="wallet-address" class="hidden mt-4 text-gray-700 break-all rounded-lg bg-gray-100 p-2"></p>
++        </div>
+ 
+         <!-- Token Creation Form -->
+         <div id="create-token-section" class="bg-gray-50 p-6 rounded-xl mb-6">
+             <h2 class="text-xl font-semibold text-gray-700 mb-4">토큰 생성</h2>
+             <div class="space-y-4">
+                 <div>
+                     <label for="token-name" class="block text-sm font-medium text-gray-700">토큰 이름</label>
+                     <input type="text" id="token-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: My Utility Coin">
+                 </div>
+                 <div>
+                     <label for="token-symbol" class="block text-sm font-medium text-gray-700">토큰 심볼</label>
+                     <input type="text" id="token-symbol" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: MYC">
+                 </div>
+                 <div>
+                     <label for="token-supply" class="block text-sm font-medium text-gray-700">총 발행량</label>
+                     <input type="number" id="token-supply" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: 1000000000">
+                 </div>
+                 <div>
+                     <label for="token-description" class="block text-sm font-medium text-gray-700">토큰 설명</label>
+                     <textarea id="token-description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="토큰에 대한 간단한 설명"></textarea>
+                 </div>
+                 <div>
+                     <label for="token-website-url" class="block text-sm font-medium text-gray-700">웹사이트 URL</label>
+                     <input type="url" id="token-website-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://mycoin.io">
+                 </div>
+                 <div>
+                     <label for="token-logo-url" class="block text-sm font-medium text-gray-700">토큰 로고 URL</label>
+                     <input type="url" id="token-logo-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://example.com/logo.png">
+                 </div>
+                 <div>
+                     <label for="twitter-url" class="block text-sm font-medium text-gray-700">트위터 URL</label>
+                     <input type="url" id="twitter-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://twitter.com/mycoin">
+                 </div>
+                 <div>
+                     <label for="discord-url" class="block text-sm font-medium text-gray-700">디스코드 URL</label>
+                     <input type="url" id="discord-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="예: https://discord.com/invite/mycoin">
+                 </div>
+                 <button id="create-token-btn" class="w-full bg-green-500 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-600 transition duration-300">
+                     토큰 생성하기
+                 </button>
+             </div>
+         </div>
+ 
+         <!-- Token Info Display Section -->
+         <div id="token-info-section" class="bg-gray-50 p-6 rounded-xl hidden mb-6 text-center">
+             <h2 class="text-xl font-semibold text-gray-700 mb-4">내 토큰 정보</h2>
+             <div class="flex flex-col items-center justify-center space-y-4">
+                 <img id="token-logo" src="" alt="Token Logo" class="h-24 w-24 rounded-full border-2 border-gray-200 object-cover">
+                 <p class="text-2xl font-bold text-gray-800"><span id="display-token-name"></span> (<span id="display-token-symbol"></span>)</p>
+-                <p class="text-gray-600">총 발행량: <span id="display-token-supply"></span></p>
+-                <div class="flex space-x-4">
++                <p class="text-gray-600">총 발행량: <span id="display-token-supply"></span></p>
++                <p id="display-token-description" class="text-gray-600"></p>
++                <a id="website-link" href="#" target="_blank" class="text-indigo-600 hover:underline hidden"></a>
++                <div class="flex space-x-4">
+                     <a id="twitter-link" href="#" target="_blank" class="hidden">
+                         <svg class="w-8 h-8 text-gray-600 hover:text-blue-500 transition-colors duration-200" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                             <path d="M18.244 2.25h3.308l-7.227 8.261 8.502 11.239h-6.69l-5.982-7.925-4.148 5.494h-3.308l7.536-8.583-8.62-11.399h6.655l4.332 5.768zM17.43 19.33L5.15 4.126h2.822l12.02 15.204h-2.564z" />
+                         </svg>
+                     </a>
+                     <a id="discord-link" href="#" target="_blank" class="hidden">
+                         <svg class="w-8 h-8 text-gray-600 hover:text-indigo-500 transition-colors duration-200" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                             <path d="M15.42 5.568c-.78-1.1-1.78-2.2-2.92-3.3-1.62-.62-3.32-.96-5.08-.96-1.76 0-3.46.34-5.08.96-1.14 1.1-2.14 2.2-2.92 3.3-1.02 1.4-1.74 3.1-2.02 4.9-.28 1.8-.1 3.7.5 5.5.6 1.8 1.6 3.4 2.9 4.8.4.4.9.7 1.4.9.5.2.9.3 1.4.3.5 0 1-.1 1.5-.3.5-.2.9-.5 1.4-.9.4-.4.8-.8 1.2-1.3.4-.5.8-1 1.1-1.6.3-.6.5-1.2.6-1.9.1-.7.1-1.4 0-2.1-.1-1.4-.7-2.7-1.7-3.9.7-.7 1.6-1.3 2.5-1.8.9-.5 1.8-.9 2.8-1.2.9-.3 1.9-.5 2.8-.5 1.8 0 3.5.5 5.1 1.4 1.6.9 3 2.1 4.2 3.5 1.2 1.4 2.2 2.9 2.9 4.6 1.1 2.3 1.5 4.8.9 7.3-.6 2.5-2 4.7-4.2 6.4-1.2 1-2.6 1.8-4.1 2.4-1.5.6-3.1 1-4.7 1-1.6 0-3.2-.4-4.7-1-1.5-.6-2.9-1.4-4.1-2.4-2.2-1.7-3.6-3.9-4.2-6.4-.6-2.5-.2-5 .9-7.3 1.1-2.3 2.5-4.2 4.2-5.5 1.7-1.3 3.5-2.2 5.4-2.7 1.9-.5 3.8-.6 5.7-.3 1.9.3 3.7.9 5.4 1.8 1.7.9 3.2 2 4.6 3.3 1.4 1.3 2.6 2.8 3.5 4.4 1.8 3.2 2.8 6.7 2.8 10.3 0 1.2-.1 2.4-.4 3.6-2.3-1-4.9-1.5-7.6-1.5-2.7 0-5.3.5-7.6 1.5-.3-1.2-.4-2.4-.4-3.6 0-3.6 1-7.1 2.8-10.3 1.4-2.4 3.2-4.4 5.4-5.9 2.2-1.5 4.6-2.5 7-3zm-10.12 11.23c-1.28-.1-2.45.6-3.14 1.7-.69 1.1-.9 2.5-.64 3.8-.65.2-1.24.5-1.78.9-.54.4-.97.9-1.3 1.5-.33.6-.5 1.3-.5 2 0 .7.1 1.4.3 2.1.2.7.5 1.4.9 2.1.4.7.9 1.4 1.6 2.1.7.7 1.5 1.4 2.4 1.9 1.6.9 3.3 1.4 5.1 1.4 1.8 0 3.5-.5 5.1-1.4 1.6-.9 2.9-2.1 3.9-3.5 1-1.4 1.7-3 2-4.7.3-1.7.1-3.5-.5-5.2-.6-1.7-1.6-3.2-3-4.5-1.4-1.3-2.9-2.2-4.7-2.8-1.8-.6-3.7-.7-5.5-.3-1.8.4-3.5 1.3-5.2 2.5-1.7 1.2-3.1 2.7-4.1 4.5-.4-.4-.8-.8-1.2-1.3-.4-.5-.8-1-1.1-1.6-.3-.6-.5-1.2-.6-1.9-.1-.7-.1-1.4 0-2.1.1-1.4.7-2.7 1.7-3.9z" />
+                         </svg>
+                     </a>
+                 </div>
+             </div>
+         </div>
+ 
+         <!-- Token Transfer Form -->
+         <div id="transfer-token-section" class="bg-gray-50 p-6 rounded-xl">
+             <h2 class="text-xl font-semibold text-gray-700 mb-4">단일 토큰 전송</h2>
+             <div class="space-y-4">
+                 <div>
+                     <label for="recipient-address" class="block text-sm font-medium text-gray-700">받는 사람 주소</label>
+                     <input type="text" id="recipient-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="받는 사람의 솔라나 주소">
+                 </div>
+                 <div>
+                     <label for="transfer-amount" class="block text-sm font-medium text-gray-700">전송 수량</label>
+                     <input type="number" id="transfer-amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="전송할 토큰 수량">
+diff --git a/index.html b/index.html
+index fb21a04ec198e55b74e9b2629d23438feb896773..a2788234d9bdcd6eebcf3d12f3abfed8fb1481e7 100644
+--- a/index.html
++++ b/index.html
 @@ -153,53 +159,54 @@
-                messageBox.classList.add('bg-blue-100', 'text-blue-700', 'border', 'border-blue-300');
-            }
-            messageBox.classList.remove('hidden');
-        }
-
-        const connectWalletBtn = document.getElementById('connect-wallet-btn');
-        const walletAddressElem = document.getElementById('wallet-address');
-
-        let wallet;
-        let connection;
-        let payer;
-        let mint;
-
-        async function connectWallet() {
-            try {
-                const { solana } = window;
-                if (solana) {
-                    // isPhantom과 같은 특정 지갑 체크를 제거하여 Solflare 등 다른 지갑도 지원하도록 변경
-                    const response = await solana.connect();
-                    wallet = response.publicKey;
-                    walletAddressElem.textContent = `연결된 지갑: ${wallet.toString()}`;
-                    walletAddressElem.classList.remove('hidden');
-                    connectWalletBtn.style.display = 'none';
-                    showMessage('지갑이 성공적으로 연결되었습니다!', 'success');
-                    
-                    connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'), 'confirmed');
-                    payer = wallet;
-                } else {
-                    const network = document.getElementById('network-select').value;
-                    connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl(network), 'confirmed');
-                    payer = wallet;
-                } else {
-                    showMessage('솔라나 지갑을 찾을 수 없습니다. Phantom 또는 Solflare를 설치해주세요.', 'error');
-                }
-            } catch (error) {
-                showMessage(`지갑 연결 실패: ${error.message}`, 'error');
-                console.error('지갑 연결 에러:', error);
-            }
-        }
-        connectWalletBtn.addEventListener('click', connectWallet);
-
-        document.getElementById('create-token-btn').addEventListener('click', async () => {
-            if (!wallet) {
-                showMessage('먼저 지갑을 연결하세요.', 'error');
-                return;
-            }
-
-            const tokenName = document.getElementById('token-name').value;
-            const tokenSymbol = document.getElementById('token-symbol').value;
-            const tokenSupply = parseInt(document.getElementById('token-supply').value);
-            const tokenLogoUrl = document.getElementById('token-logo-url').value;
-            const tokenDescription = document.getElementById('token-description').value;
-            const tokenWebsiteUrl = document.getElementById('token-website-url').value;
-            const twitterUrl = document.getElementById('twitter-url').value;
-            const discordUrl = document.getElementById('discord-url').value;
-
-            if (!tokenName || !tokenSymbol || isNaN(tokenSupply) || tokenSupply <= 0) {
+                 messageBox.classList.add('bg-blue-100', 'text-blue-700', 'border', 'border-blue-300');
+             }
+             messageBox.classList.remove('hidden');
+         }
+ 
+         const connectWalletBtn = document.getElementById('connect-wallet-btn');
+         const walletAddressElem = document.getElementById('wallet-address');
+ 
+         let wallet;
+         let connection;
+         let payer;
+         let mint;
+ 
+         async function connectWallet() {
+             try {
+                 const { solana } = window;
+                 if (solana) {
+                     // isPhantom과 같은 특정 지갑 체크를 제거하여 Solflare 등 다른 지갑도 지원하도록 변경
+                     const response = await solana.connect();
+                     wallet = response.publicKey;
+                     walletAddressElem.textContent = `연결된 지갑: ${wallet.toString()}`;
+                     walletAddressElem.classList.remove('hidden');
+                     connectWalletBtn.style.display = 'none';
+                     showMessage('지갑이 성공적으로 연결되었습니다!', 'success');
+                     
+-                    connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'), 'confirmed');
+-                    payer = wallet;
+-                } else {
++                    const network = document.getElementById('network-select').value;
++                    connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl(network), 'confirmed');
++                    payer = wallet;
++                } else {
+                     showMessage('솔라나 지갑을 찾을 수 없습니다. Phantom 또는 Solflare를 설치해주세요.', 'error');
+                 }
+             } catch (error) {
+                 showMessage(`지갑 연결 실패: ${error.message}`, 'error');
+                 console.error('지갑 연결 에러:', error);
+             }
+         }
+         connectWalletBtn.addEventListener('click', connectWallet);
+ 
+         document.getElementById('create-token-btn').addEventListener('click', async () => {
+             if (!wallet) {
+                 showMessage('먼저 지갑을 연결하세요.', 'error');
+                 return;
+             }
+ 
+             const tokenName = document.getElementById('token-name').value;
+             const tokenSymbol = document.getElementById('token-symbol').value;
+             const tokenSupply = parseInt(document.getElementById('token-supply').value);
+             const tokenLogoUrl = document.getElementById('token-logo-url').value;
+             const tokenDescription = document.getElementById('token-description').value;
+             const tokenWebsiteUrl = document.getElementById('token-website-url').value;
+             const twitterUrl = document.getElementById('twitter-url').value;
+             const discordUrl = document.getElementById('discord-url').value;
+ 
+             if (!tokenName || !tokenSymbol || isNaN(tokenSupply) || tokenSupply <= 0) {
+diff --git a/index.html b/index.html
+index fb21a04ec198e55b74e9b2629d23438feb896773..a2788234d9bdcd6eebcf3d12f3abfed8fb1481e7 100644
+--- a/index.html
++++ b/index.html
 @@ -236,58 +243,68 @@
-                    tokenSupply * (10 ** 9)
-                );
-
-                // 3. 메타데이터 생성 (Metaplex)
-                const metaplex = new Metaplex.Metaplex(connection);
-
-                await metaplex.tokens().createToken({
-                    mint: mint,
-                    owner: payer,
-                    name: tokenName,
-                    symbol: tokenSymbol,
-                    decimals: 9,
-                    uri: tokenLogoUrl, // 임시로 로고 URL 사용, 실제로는 Arweave 등에 업로드된 URI 사용
-                    sellerFeeBasisPoints: 0,
-                    creators: [{ address: wallet, share: 100 }],
-                }).run();
-
-
-                showMessage(`'${tokenName}' 토큰이 성공적으로 생성되었습니다! 민트 주소: ${mint.toString()}`, 'success');
-                console.log('생성된 토큰 민트:', mint.toString());
-
-                // Display token info
-                const tokenInfoSection = document.getElementById('token-info-section');
-                document.getElementById('display-token-name').textContent = tokenName;
-                document.getElementById('display-token-symbol').textContent = tokenSymbol;
-                document.getElementById('display-token-supply').textContent = tokenSupply.toLocaleString();
-
-                const tokenLogo = document.getElementById('token-logo');
-                if (tokenLogoUrl) {
-                    tokenLogo.src = tokenLogoUrl;
-                    tokenLogo.classList.remove('hidden');
-                } else {
-                    tokenLogo.classList.add('hidden');
-                document.getElementById('display-token-supply').textContent = tokenSupply.toLocaleString();
-                document.getElementById('display-token-description').textContent = tokenDescription;
-
-                const websiteLink = document.getElementById('website-link');
-                if (tokenWebsiteUrl) {
-                    websiteLink.href = tokenWebsiteUrl;
-                    websiteLink.textContent = tokenWebsiteUrl;
-                    websiteLink.classList.remove('hidden');
-                } else {
-                    websiteLink.classList.add('hidden');
-                }
-
-                const tokenLogo = document.getElementById('token-logo');
-                if (tokenLogoUrl) {
-                    tokenLogo.src = tokenLogoUrl;
-                    tokenLogo.classList.remove('hidden');
-                } else {
-                    tokenLogo.classList.add('hidden');
-                }
-
-                const twitterLink = document.getElementById('twitter-link');
-                if (twitterUrl) {
-                    twitterLink.href = twitterUrl;
-                    twitterLink.classList.remove('hidden');
-                } else {
-                    twitterLink.classList.add('hidden');
-                }
-
-                const discordLink = document.getElementById('discord-link');
-                if (discordUrl) {
-                    discordLink.href = discordUrl;
-                    discordLink.classList.remove('hidden');
-                } else {
-                    discordLink.classList.add('hidden');
-                }
-
-                tokenInfoSection.classList.remove('hidden');
-
-            } catch (error) {
-                showMessage(`토큰 생성 실패: ${error.message}`, 'error');
-                console.error('토큰 생성 에러:', error);
-            }
-        });
+                     tokenSupply * (10 ** 9)
+                 );
+ 
+                 // 3. 메타데이터 생성 (Metaplex)
+                 const metaplex = new Metaplex.Metaplex(connection);
+ 
+                 await metaplex.tokens().createToken({
+                     mint: mint,
+                     owner: payer,
+                     name: tokenName,
+                     symbol: tokenSymbol,
+                     decimals: 9,
+                     uri: tokenLogoUrl, // 임시로 로고 URL 사용, 실제로는 Arweave 등에 업로드된 URI 사용
+                     sellerFeeBasisPoints: 0,
+                     creators: [{ address: wallet, share: 100 }],
+                 }).run();
+ 
+ 
+                 showMessage(`'${tokenName}' 토큰이 성공적으로 생성되었습니다! 민트 주소: ${mint.toString()}`, 'success');
+                 console.log('생성된 토큰 민트:', mint.toString());
+ 
+                 // Display token info
+                 const tokenInfoSection = document.getElementById('token-info-section');
+                 document.getElementById('display-token-name').textContent = tokenName;
+                 document.getElementById('display-token-symbol').textContent = tokenSymbol;
+-                document.getElementById('display-token-supply').textContent = tokenSupply.toLocaleString();
+-
+-                const tokenLogo = document.getElementById('token-logo');
+-                if (tokenLogoUrl) {
+-                    tokenLogo.src = tokenLogoUrl;
+-                    tokenLogo.classList.remove('hidden');
+-                } else {
+-                    tokenLogo.classList.add('hidden');
++                document.getElementById('display-token-supply').textContent = tokenSupply.toLocaleString();
++                document.getElementById('display-token-description').textContent = tokenDescription;
++
++                const websiteLink = document.getElementById('website-link');
++                if (tokenWebsiteUrl) {
++                    websiteLink.href = tokenWebsiteUrl;
++                    websiteLink.textContent = tokenWebsiteUrl;
++                    websiteLink.classList.remove('hidden');
++                } else {
++                    websiteLink.classList.add('hidden');
++                }
++
++                const tokenLogo = document.getElementById('token-logo');
++                if (tokenLogoUrl) {
++                    tokenLogo.src = tokenLogoUrl;
++                    tokenLogo.classList.remove('hidden');
++                } else {
++                    tokenLogo.classList.add('hidden');
+                 }
+ 
+                 const twitterLink = document.getElementById('twitter-link');
+                 if (twitterUrl) {
+                     twitterLink.href = twitterUrl;
+                     twitterLink.classList.remove('hidden');
+                 } else {
+                     twitterLink.classList.add('hidden');
+                 }
+ 
+                 const discordLink = document.getElementById('discord-link');
+                 if (discordUrl) {
+                     discordLink.href = discordUrl;
+                     discordLink.classList.remove('hidden');
+                 } else {
+                     discordLink.classList.add('hidden');
+                 }
+ 
+                 tokenInfoSection.classList.remove('hidden');
+ 
+             } catch (error) {
+                 showMessage(`토큰 생성 실패: ${error.message}`, 'error');
+                 console.error('토큰 생성 에러:', error);
+             }
+         });
+ 
+EOF
+)
