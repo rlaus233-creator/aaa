@@ -174,31 +174,55 @@
     <script src="https://unpkg.com/@metaplex-foundation/js@0.19.0/dist/browser/index.iife.js"></script>
 
     <script>
-        function showMessage(message, type = 'success') {
-            const messageBox = document.getElementById('message-box');
-            messageBox.textContent = message;
-            messageBox.className = 'mt-6 p-4 rounded-lg text-sm';
-            if (type === 'success') {
-                messageBox.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-300');
-            } else if (type === 'error') {
-                messageBox.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-300');
-            } else {
-                messageBox.classList.add('bg-blue-100', 'text-blue-700', 'border', 'border-blue-300');
-            }
-            messageBox.classList.remove('hidden');
-        }
-
-        const connectWalletBtn = document.getElementById('connect-wallet-btn');
-        const walletAddressElem = document.getElementById('wallet-address');
-        const networkSelect = document.getElementById('network-select');
-
-        let wallet;
-        let connection;
-        let payer;
-        let mint;
-
-        // 모든 스크립트가 로드된 후에 실행되도록 window.onload를 사용합니다.
         window.onload = function() {
+            // 모든 스크립트가 로드된 후에 실행되도록 window.onload를 사용합니다.
+            // 모든 변수 및 함수 정의를 이 블록 안에 위치시켜 안정성을 높입니다.
+            function showMessage(message, type = 'success') {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = message;
+                messageBox.className = 'mt-6 p-4 rounded-lg text-sm';
+                if (type === 'success') {
+                    messageBox.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-300');
+                } else if (type === 'error') {
+                    messageBox.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-300');
+                } else {
+                    messageBox.classList.add('bg-blue-100', 'text-blue-700', 'border', 'border-blue-300');
+                }
+                messageBox.classList.remove('hidden');
+            }
+
+            const connectWalletBtn = document.getElementById('connect-wallet-btn');
+            const walletAddressElem = document.getElementById('wallet-address');
+            const networkSelect = document.getElementById('network-select');
+
+            let wallet;
+            let connection;
+            let payer;
+            let mint;
+
+            async function connectWallet() {
+                try {
+                    const provider = window.solana;
+                    if (!provider) {
+                        showMessage('솔라나 지갑을 찾을 수 없습니다. Phantom 또는 Solflare를 설치해주세요.', 'error');
+                        return;
+                    }
+                    const response = await provider.connect();
+                    wallet = response.publicKey;
+                    walletAddressElem.textContent = `연결된 지갑: ${wallet.toString()}`;
+                    walletAddressElem.classList.remove('hidden');
+                    connectWalletBtn.style.display = 'none';
+                    networkSelect.style.display = 'none';
+                    showMessage('지갑이 성공적으로 연결되었습니다!', 'success');
+                    const network = networkSelect.value;
+                    connection = new solanaWeb3.Connection(`https://${network}.solana.com`, 'confirmed');
+                    payer = wallet;
+                } catch (error) {
+                    showMessage(`지갑 연결 실패: ${error.message}`, 'error');
+                    console.error('지갑 연결 에러:', error);
+                }
+            }
+
             connectWalletBtn.addEventListener('click', connectWallet);
 
             document.getElementById('create-token-btn').addEventListener('click', async () => {
@@ -218,6 +242,13 @@
 
                 if (!tokenName || !tokenSymbol || isNaN(tokenSupply) || tokenSupply <= 0) {
                     showMessage('필수 정보를 올바르게 입력해주세요.', 'error');
+                    return;
+                }
+                
+                // 토큰 생성에는 소량의 SOL이 필요합니다. 잔액을 확인해주세요.
+                const solBalance = await connection.getBalance(wallet);
+                if (solBalance < 0.005 * solanaWeb3.LAMPORTS_PER_SOL) {
+                    showMessage('토큰 생성에 필요한 SOL 잔액이 부족합니다. 메인넷의 경우 약 0.005 SOL 이상이 필요합니다.', 'error');
                     return;
                 }
 
